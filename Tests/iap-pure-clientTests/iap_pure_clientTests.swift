@@ -1,5 +1,5 @@
 import XCTest
-@testable import iap_pure_client
+@testable import IAP
 
 final class iap_pure_clientTests: XCTestCase {
     func testExample() throws {
