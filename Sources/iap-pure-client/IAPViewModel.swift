@@ -5,8 +5,8 @@
 import Foundation
 import SwiftUI
 
-class IAPViewModel :ObservableObject {
-    @Published var loading = false
+public class IAPViewModel :ObservableObject {
+    @Published public var loading = false
     
-    static let shared: IAPViewModel = IAPViewModel()
+    public static let shared: IAPViewModel = IAPViewModel()
 }

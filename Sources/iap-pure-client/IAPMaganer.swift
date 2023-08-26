@@ -6,17 +6,17 @@
 import Foundation
 import StoreKit
 
-class IAPManager: NSObject, ObservableObject {
+public class IAPManager: NSObject, ObservableObject {
     
-    var callback: (() -> Void)? = nil
-    static let shared = IAPManager()
-    @Published var products = [SKProduct]()
+    var callback: ((_ pid: String) -> Void)? = nil
+    public static let shared = IAPManager()
+    @Published public var products = [SKProduct]()
     fileprivate var productRequest: SKProductsRequest!
 
-    public func setCallback(callback: @escaping () -> Void){
+    public func setCallback(callback: @escaping (_ pid: String) -> Void){
         self.callback = callback
     }
-    func checkSubscriptionStatus(password: String) -> Bool {
+    public func checkSubscriptionStatus(password: String) -> Bool {
         
         let semaphore = DispatchSemaphore(value: 0)
         let request = SKReceiptRefreshRequest()
@@ -88,14 +88,14 @@ class IAPManager: NSObject, ObservableObject {
         return vaild
     }
     
-    func getProducts(productIds: [String]) {
+    public func getProducts(productIds: [String]) {
         let productIdsSet = Set(productIds)
         productRequest = SKProductsRequest(productIdentifiers: productIdsSet)
         productRequest.delegate = self
         productRequest.start()
     }
     
-    func buy(product: SKProduct) {
+    public func buy(product: SKProduct) {
         if SKPaymentQueue.canMakePayments() {
             let payment = SKPayment(product: product)
             SKPaymentQueue.default().add(payment)
@@ -104,13 +104,13 @@ class IAPManager: NSObject, ObservableObject {
         }
     }
     
-    func restore() {
+    public func restore() {
         SKPaymentQueue.default().restoreCompletedTransactions()
     }
     
 }
 extension IAPManager: SKProductsRequestDelegate {
-    func productsRequest(_ request: SKProductsRequest, didReceive response: SKProductsResponse) {
+    public func productsRequest(_ request: SKProductsRequest, didReceive response: SKProductsResponse) {
         response.products.forEach {
             print($0.localizedTitle, $0.price, $0.localizedDescription)
         }
@@ -122,7 +122,7 @@ extension IAPManager: SKProductsRequestDelegate {
 }
 
 extension IAPManager: SKPaymentTransactionObserver {
-    func paymentQueue(_ queue: SKPaymentQueue, updatedTransactions transactions: [SKPaymentTransaction]) {
+    public func paymentQueue(_ queue: SKPaymentQueue, updatedTransactions transactions: [SKPaymentTransaction]) {
         
         transactions.forEach {
             print($0.payment.productIdentifier, $0.transactionState.rawValue)
@@ -131,7 +131,7 @@ extension IAPManager: SKPaymentTransactionObserver {
                 IAPViewModel.shared.loading = false
                 SKPaymentQueue.default().finishTransaction($0)
                 if let callback = self.callback {
-                    callback()
+                    callback($0.payment.productIdentifier)
                 }
             case .failed:
                 print($0.error ?? "")
@@ -155,7 +155,7 @@ extension IAPManager: SKPaymentTransactionObserver {
 }
 
 extension SKProduct {
-    var regularPrice: String? {
+    public var regularPrice: String? {
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
         formatter.locale = self.priceLocale
