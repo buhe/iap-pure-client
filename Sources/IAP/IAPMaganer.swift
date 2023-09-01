@@ -16,7 +16,7 @@ public class IAPManager: NSObject, ObservableObject {
     public func setCallback(callback: @escaping (_ pid: String) -> Void){
         self.callback = callback
     }
-    public func checkSubscriptionStatus(password: String) -> Bool {
+    public func checkSubscriptionStatus(password: String, timeoutHandler: () -> Bool) -> Bool {
         
         let semaphore = DispatchSemaphore(value: 0)
         let request = SKReceiptRefreshRequest()
@@ -85,7 +85,11 @@ public class IAPManager: NSObject, ObservableObject {
             semaphore.signal()
         }
         semaphore.wait()
-        return vaild
+        if !vaild {
+         return timeoutHandler()
+       } else {
+           return true
+       }
     }
     
     public func getProducts(productIds: [String]) {
