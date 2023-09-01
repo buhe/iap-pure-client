@@ -17,9 +17,9 @@ public struct IAPCache {
     private var timeout = true
     private var cacheCount = 0
     
-    public mutating func checkSubscriptionStatus(password: String, timeoutHandler: () -> Bool) -> Bool {
+    public mutating func checkSubscriptionStatus(password: String) -> Bool {
         if timeout && cacheCount < cacheRetry {
-            let result = IAPManager.shared.checkSubscriptionStatus(password: password, timeoutHandler: timeoutHandler)
+            let result = IAPManager.shared.checkSubscriptionStatus(password: password)
             cacheCount = 0
             timeout = !result
             
