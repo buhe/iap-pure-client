@@ -12,9 +12,12 @@ public class IAPManager: NSObject, ObservableObject {
     public static let shared = IAPManager()
     @Published public var products = [SKProduct]()
     fileprivate var productRequest: SKProductsRequest!
-
+    var iapMap: [String: Bool] = [:]
     public func setCallback(callback: @escaping (_ pid: String) -> Void){
         self.callback = callback
+    }
+    public func checkPaymentStatus(id: String) -> Bool? {
+        iapMap[id]
     }
     public func checkSubscriptionStatus(password: String) -> Bool {
         
@@ -89,6 +92,10 @@ public class IAPManager: NSObject, ObservableObject {
     }
     
     public func getProducts(productIds: [String]) {
+        // Construct iap map
+        for p in productIds {
+            iapMap[p] = false
+        }
         let productIdsSet = Set(productIds)
         productRequest = SKProductsRequest(productIdentifiers: productIdsSet)
         productRequest.delegate = self
@@ -133,6 +140,7 @@ extension IAPManager: SKPaymentTransactionObserver {
                 if let callback = self.callback {
                     callback($0.payment.productIdentifier)
                 }
+                iapMap[$0.payment.productIdentifier] = true
             case .failed:
                 print($0.error ?? "")
                 if ($0.error as? SKError)?.code != .paymentCancelled {
@@ -140,8 +148,10 @@ extension IAPManager: SKPaymentTransactionObserver {
                 }
                 SKPaymentQueue.default().finishTransaction($0)
                 IAPViewModel.shared.loading = false
+                iapMap[$0.payment.productIdentifier] = false
             case .restored:
                 IAPViewModel.shared.loading = false
+                iapMap[$0.payment.productIdentifier] = true
                 SKPaymentQueue.default().finishTransaction($0)
             case .purchasing, .deferred:
                 break
